@@ -12,6 +12,8 @@ public class ApplicationUser : IdentityUser
     public string Password { get; set; } = string.Empty;
     [MaxLength(20)]
     public string FullName { get; set; } = string.Empty;
+    [MaxLength(100)]
+    public string Address { get; set; } = string.Empty;
     [MaxLength(20)]
     public string? Designation { get; set; } = string.Empty;
     [MaxLength(20)] 
