@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using HospitalManagementSystem.Models.DatabaseEntity.User.Dto;
 using HospitalManagementSystem.Models.GenericModels;
 using HospitalManagementSystem.Services.IService;
 using HospitalManagementSystem.Utilities;
@@ -26,12 +27,10 @@ namespace HospitalManagementSystem.Api.Controllers
             response.Result = stuffCodeG;
             return response;
         }
-        [HttpPost("getUser")]
-        public async Task<ApiResponse> GetIsUserUnique(string phoneNumber)
+        [HttpPost("register")]
+        public async Task<ApiResponse> Registration([FromForm]CreateAppUserDto request)
         {
-            var stuffCodeG = await _serviceManager.AuthService.IsPhoneNumberUnique(phoneNumber);
-            var response = new ApiResponse();
-            response.Result = stuffCodeG;
+            var response = await _serviceManager.AuthService.Register(request);
             return response;
         }
 

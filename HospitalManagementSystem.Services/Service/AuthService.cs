@@ -7,7 +7,9 @@ using HospitalManagementSystem.Models.DatabaseEntity.User;
 using HospitalManagementSystem.Models.DatabaseEntity.User.Dto;
 using HospitalManagementSystem.Models.GenericModels;
 using HospitalManagementSystem.Services.IService;
+using HospitalManagementSystem.Utilities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -16,6 +18,7 @@ namespace HospitalManagementSystem.Services.Service;
 public class AuthService : Service<ApplicationUser>, IAuthService
 {
     private readonly HMSDbContext _db;
+    private readonly IServiceManager _serviceManager;
     private readonly ApiResponse _response;
     private readonly UserManager<ApplicationUser> _userManager;
     //private readonly RoleManager<IdentityRole> _roleManager;
@@ -30,8 +33,8 @@ public class AuthService : Service<ApplicationUser>, IAuthService
         _db = db;
         _response = new ApiResponse();
         _userManager = userManager;
-
         _secretKey = secretKey;
+        
     }
     public async Task<bool> IsPhoneNumberUnique(string phoneNumber)
     {
@@ -113,26 +116,61 @@ public class AuthService : Service<ApplicationUser>, IAuthService
         }
     }
 
-    public async Task<ApiResponse> Register(CreateAppUserDto request)
+    public async Task<ApiResponse> Register([FromForm]CreateAppUserDto request)
     {
         try
         {
-            var isPhoneUnique = await IsPhoneNumberUnique(request.PhoneNumber);
-            var isEmailUnique = await IsEmailUnique(request.Email);
             var isUserUnique = await IsUserUnique(request.FullName.ToLower());
-            if (!isPhoneUnique)
+            if (!isUserUnique)
             {
                 _response.Success = false;
                 _response.StatusCode = HttpStatusCode.BadRequest;
-                _response.Message = "Phone number is already in use.";
+                _response.Message = "User name is already in use.";
                 return _response;
             }
 
-            _response.Success = true;
-            _response.StatusCode = HttpStatusCode.Created;
-            _response.Message = "Registration successful.";
-            _response.Result = isPhoneUnique;
+            var imageUrl = "";
+            if (request.ImageUrl != null)
+            {
+                imageUrl = await _serviceManager.File.FileUpload(request.ImageUrl,"stuff/images");
+            }
+            
+            //user model to create
+            var newUser = new ApplicationUser()
+            {
+                UserName = request.FullName,
+                FullName = request.FullName,
+                Address = request.Address,
+                StuffCode = await _serviceManager.GeneratorCodeService.GenerateCodeAsync(request.Role),
+                Email = request.Email,
+                PhoneNumber = request.PhoneNumber,
+                Password = request.Password,
+                Designation = request.Designation,
+                LicenseNumber =  request.LicenseNumber,
+                NidNumber =  request.NidNumber,
+                PassportNumber =  request.PassportNumber,
+                DateOfBirth =  request.DateOfBirth,
+                CreatedAt = DateTime.Now,
+                UpdatedAt =  DateTime.Now,
+                ImageUrl = imageUrl,
+                DepartmentId =  request.DepartmentId
+
+            };
+            
+            var result = await _userManager.CreateAsync(newUser, request.Password);
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(newUser, request.Role.ToString());
+                _response.Success = true;
+                _response.StatusCode = HttpStatusCode.Created;
+                _response.Message = "Registration successful.";
+                return _response;
+            }
+            _response.Success = false;
+            _response.StatusCode = HttpStatusCode.InternalServerError;
+            _response.Message = "Registration failed.";
             return _response;
+            
 
         }catch(Exception e)
         {

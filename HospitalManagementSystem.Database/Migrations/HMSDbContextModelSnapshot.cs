@@ -103,6 +103,11 @@ namespace HospitalManagementSystem.Database.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
@@ -120,7 +125,6 @@ namespace HospitalManagementSystem.Database.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Designation")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
@@ -143,7 +147,6 @@ namespace HospitalManagementSystem.Database.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("LicenseNumber")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 

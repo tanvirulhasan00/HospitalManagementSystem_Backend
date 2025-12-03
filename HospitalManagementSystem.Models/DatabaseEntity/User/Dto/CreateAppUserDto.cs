@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using HospitalManagementSystem.Utilities;
 using Microsoft.AspNetCore.Http;
 
 namespace HospitalManagementSystem.Models.DatabaseEntity.User.Dto;
@@ -7,6 +8,9 @@ public class CreateAppUserDto
 {
     [MaxLength(20)]
     public string FullName { get; set; } = string.Empty;
+    [MaxLength(100)]
+    public string Address { get; set; } = string.Empty;
+    public Role Role { get; set; }
     [MaxLength(20)]
     public string Password { get; set; } = string.Empty;
     [MaxLength(20)]
@@ -22,7 +26,7 @@ public class CreateAppUserDto
     [MaxLength(20)]
     public string? PassportNumber { get; set; }  = string.Empty;
     public DateOnly DateOfBirth { get; set; }
-    public DateTime CreatedAt { get; set; } 
+
     public IFormFile? ImageUrl { get; set; }
 
     public Guid? DepartmentId { get; set; }
