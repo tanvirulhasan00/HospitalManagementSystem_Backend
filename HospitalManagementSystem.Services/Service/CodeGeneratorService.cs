@@ -13,7 +13,7 @@ public class CodeGeneratorService : ICodeGeneratorService
     {
         _userManager = userManager;
     }
-    public async Task<string> GenerateCodeAsync(Role role)
+    public async Task<string> GenerateCodeAsync(string role)
     {
         var prefix = RoleCodeGenerator.GetRolePrefix(role);
         

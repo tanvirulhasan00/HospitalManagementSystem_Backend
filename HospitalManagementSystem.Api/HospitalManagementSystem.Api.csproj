@@ -33,6 +33,8 @@
 
   <ItemGroup>
     <Folder Include="Controllers\" />
+    <Folder Include="wwwroot\" />
+    <Folder Include="wwwroot\images\user\" />
   </ItemGroup>
 
   <ItemGroup>

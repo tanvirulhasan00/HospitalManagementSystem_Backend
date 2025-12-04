@@ -67,13 +67,13 @@ public class DbInitializerService : IDbInitializerService
 
     private async Task SeedAdminUserAsync()
     {
-        var stuffCodeG = await _serviceManager.GeneratorCodeService.GenerateCodeAsync(Role.Admin);
+        var stuffCode = await _serviceManager.GeneratorCodeService.GenerateCodeAsync(RoleVariable.Admin);
 
         const string adminEmail = "admin@gmail.com";
         const string adminPassword = "aDmin@00#";
         const string adminUsername = "admin";
         const string phoneNumber = "01970806028";
-        var stuffCode = stuffCodeG;
+        
 
         var existingAdmin = await _userManager.FindByNameAsync(adminUsername);
 

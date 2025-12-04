@@ -13,6 +13,6 @@ public interface IAuthService : IService<ApplicationUser>
     Task<bool> IsEmailUnique(string email);
     Task<bool> IsUserUnique(string userName);
     Task<ApiResponse> Login(LoginRequest request);
-    Task<ApiResponse> Register([FromForm] CreateAppUserDto request);
+    Task<ApiResponse> Register(ApplicationUser request,string role);
     void Update(ApplicationUser user);
 }

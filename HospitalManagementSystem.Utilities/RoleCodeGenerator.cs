@@ -13,17 +13,18 @@ public enum Role
 
 public static class RoleCodeGenerator
 {
-    public static string GetRolePrefix(Role role)
+    public static string GetRolePrefix(string role)
     {
-        return role switch
+        var rolePrefix = role.ToLower();
+        return rolePrefix switch
         {
-            Role.Admin         => "AD",
-            Role.Receptionist  => "RC",
-            Role.Doctor        => "DR",
-            Role.Nurse         => "NU",
-            Role.Accountant    => "AC",
-            Role.Laboratorist  => "LB",
-            Role.Pharmacist    => "PH",
+            RoleVariable.Admin => "AD",
+            RoleVariable.Receptionist  => "RC",
+            RoleVariable.Doctor        => "DR",
+            RoleVariable.Nurse         => "NU",
+            RoleVariable.Accountant    => "AC",
+            RoleVariable.Laboratorist  => "LB",
+            RoleVariable.Pharmacist    => "PH",
             _ => "UN" // Unknown
         };
     }

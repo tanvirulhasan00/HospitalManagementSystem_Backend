@@ -1,6 +1,6 @@
 namespace HospitalManagementSystem.Utilities;
 
-public class RoleVariable
+public static class RoleVariable
 {
     public const string Admin = "admin";
     public const string Receptionist = "receptionist";
