@@ -160,6 +160,11 @@ public class AuthService : Service<ApplicationUser>, IAuthService
         }
     }
 
+    public Task<ApiResponse> UpdatePassword(UpdatePasswordDto request)
+    {
+        throw new NotImplementedException();
+    }
+
     public void Update(ApplicationUser user)
     {
         _db.Update(user);

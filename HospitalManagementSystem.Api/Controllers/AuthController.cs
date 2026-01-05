@@ -5,7 +5,6 @@ using HospitalManagementSystem.Models.DatabaseEntity.User;
 using HospitalManagementSystem.Models.DatabaseEntity.User.Dto;
 using HospitalManagementSystem.Models.GenericModels;
 using HospitalManagementSystem.Services.IService;
-using HospitalManagementSystem.Utilities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HospitalManagementSystem.Api.Controllers
@@ -63,7 +62,6 @@ namespace HospitalManagementSystem.Api.Controllers
                     UpdatedAt =  DateTime.UtcNow,
                     ImageUrl = imageUrl,
                     DepartmentId =  request.DepartmentId
-
                 };
                 var response = await _serviceManager.AuthService.Register(newUser,request.Role);
                 

@@ -14,5 +14,6 @@ public interface IAuthService : IService<ApplicationUser>
     Task<bool> IsUserUnique(string userName);
     Task<ApiResponse> Login(LoginRequest request);
     Task<ApiResponse> Register(ApplicationUser request,string role);
+    Task<ApiResponse> UpdatePassword(UpdatePasswordDto request);
     void Update(ApplicationUser user);
 }
