@@ -160,9 +160,50 @@ public class AuthService : Service<ApplicationUser>, IAuthService
         }
     }
 
-    public Task<ApiResponse> UpdatePassword(UpdatePasswordDto request)
+    public async Task<ApiResponse> UpdatePassword(UpdatePasswordDto request)
     {
-        throw new NotImplementedException();
+        try
+        {
+            if (string.IsNullOrEmpty(request.Password))
+            {
+                _response.Success = false;
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.Message = "Password Field is empty.";
+                return _response;
+            }
+
+            var user = await _userManager.FindByIdAsync(request.UserId);
+            if (user == null)
+            {
+                _response.Success = false;
+                _response.StatusCode = HttpStatusCode.NotFound;
+                _response.Message = "User not found.";
+                return _response;
+            }
+            user.Password = request.Password;
+            var result = await _userManager.ChangePasswordAsync(user, request.Password, request.Password);
+            if (result.Succeeded)
+            {
+                await _db.SaveChangesAsync();
+                _response.Success = true;
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.Message = "Password updated successful.";
+                return _response;
+            }
+        
+            _response.Success = false;
+            _response.StatusCode = HttpStatusCode.InternalServerError;
+            _response.Message = "Password update failed.";
+            return _response;
+        }
+        catch (Exception e)
+        {
+            _response.Success = false;
+            _response.StatusCode = HttpStatusCode.InternalServerError;
+            _response.Message = e.Message;
+            return _response;
+        }
+        
     }
 
     public void Update(ApplicationUser user)

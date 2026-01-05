@@ -5,6 +5,7 @@ using HospitalManagementSystem.Models.DatabaseEntity.User;
 using HospitalManagementSystem.Models.DatabaseEntity.User.Dto;
 using HospitalManagementSystem.Models.GenericModels;
 using HospitalManagementSystem.Services.IService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HospitalManagementSystem.Api.Controllers
@@ -28,8 +29,9 @@ namespace HospitalManagementSystem.Api.Controllers
         }
         
         
-        [HttpPost("register")]
+        [HttpPost("registration")]
         [Consumes("multipart/form-data")]
+        [Authorize(Roles =  "admin")]
         public async Task<ApiResponse> Registration([FromForm] CreateAppUserDto request)
         {
             var errorCatch = new ApiResponse();
@@ -75,5 +77,21 @@ namespace HospitalManagementSystem.Api.Controllers
                 return errorCatch;
             }
         }
+
+        [HttpPost("update-password")]
+        [Authorize(Roles = "admin")]
+        public async Task<ApiResponse> UpdatePassword(UpdatePasswordDto request)
+        {
+            var response = await _serviceManager.AuthService.UpdatePassword(request);
+            return response;
+        }
+        
+        [Authorize(Roles = "admin")]
+        [HttpGet("admin-only")]
+        public IActionResult AdminOnly()
+        {
+            return Ok("You are admin");
+        }
+
     }
 }

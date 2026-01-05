@@ -43,9 +43,9 @@ builder.Services.AddOpenApi(options =>
     {
         document.Info = new()
         {
-            Title = "Generic API Project",
+            Title = "Hospital Management System",
             Version = "v1",
-            Description = "API for generic project"
+            Description = "API for HMS project"
         };
         return Task.CompletedTask;
     });
@@ -53,13 +53,14 @@ builder.Services.AddOpenApi(options =>
 });
 builder.Services.AddOpenApi("v2", options =>
 {
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
     options.AddDocumentTransformer((document, _, _) =>
     {
         document.Info = new()
         {
-            Title = "Generic API Project",
+            Title = "Hospital Management System",
             Version = "v2",
-            Description = "API for generic project"
+            Description = "API for HMS project"
         };
         return Task.CompletedTask;
     });
@@ -82,6 +83,7 @@ builder.Services.AddApiVersioning()
 // ===== JWT Authentication =====
 
 var key = builder.Configuration.GetValue<string>("TokenSetting:SecretKey") ?? "";
+Console.WriteLine("token from p" + key);
 var tokenValidationParams = new TokenValidationParameters
 {
     ValidateIssuerSigningKey = true,
@@ -91,6 +93,7 @@ var tokenValidationParams = new TokenValidationParameters
     ClockSkew = TimeSpan.Zero
 };
 
+
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -99,20 +102,27 @@ builder.Services.AddAuthentication(options =>
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = tokenValidationParams;
-        options.RequireHttpsMetadata = true;
+        options.RequireHttpsMetadata = false;
         options.SaveToken = true;
+       
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
             {
-                // Read token from the HTTP-only cookie
-                var accessToken = context.HttpContext.Request.Cookies["access_token"];
-                if (!string.IsNullOrEmpty(accessToken))
-                {
-                    context.Token = accessToken;
-                }
+                // 1️⃣ Try Authorization Header first
+                var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
+                var cookieToken = context.Request.Cookies["access_token"];
+
+                Console.WriteLine($"AUTH HEADER: {authHeader}");
+                Console.WriteLine($"COOKIE TOKEN: {cookieToken}");
+                
+                var token = context.Request.Headers.Authorization.FirstOrDefault()
+                                ?.Replace("Bearer ", "", StringComparison.OrdinalIgnoreCase)
+                            ?? context.Request.Cookies["access_token"];
+                context.Token = token;
                 return Task.CompletedTask;
-            }
+            },
+            
         };
     });
 
