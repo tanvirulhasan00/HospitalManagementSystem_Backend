@@ -25,7 +25,7 @@ public class ServiceManager : IServiceManager
     _env = env;
     _httpContextAccessor = httpContextAccessor;
     var secretKey = configuration["TokenSetting:SecretKey"] ?? "";
-    Console.WriteLine(secretKey);
+    //Console.WriteLine(secretKey);
     AuthService = new AuthService(_db, userManager, secretKey,_env,_httpContextAccessor);
     GeneratorCodeService = new CodeGeneratorService(userManager);
     File = new FileService(_env, _httpContextAccessor);

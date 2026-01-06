@@ -4,86 +4,70 @@ using HospitalManagementSystem.Database.Data;
 using HospitalManagementSystem.Models.DatabaseEntity.User;
 using HospitalManagementSystem.Services.IService;
 using HospitalManagementSystem.Services.Service;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// ---------------------------
+// Services
+// ---------------------------
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHealthChecks();
-// DbContext
-builder.Services.AddDbContext<HMSDbContext>(options =>
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("LocalConnectionString"))
+builder.Services.AddOpenApi();
 
+// ---------------------------
+// Database
+// ---------------------------
+builder.Services.AddDbContext<HMSDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("LocalConnectionString"))
 );
+
+// ---------------------------
 // Identity
+// ---------------------------
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<HMSDbContext>()
     .AddDefaultTokenProviders();
 
-// scopes
+// ---------------------------
+// Scoped services
+// ---------------------------
 builder.Services.AddScoped<IServiceManager, ServiceManager>();
 builder.Services.AddScoped<ICheckerService, CheckerService>();
 builder.Services.AddScoped<IDbInitializerService, DbInitializerService>();
 
-//openapi config
-builder.Services.AddOpenApi(options =>
-{
-    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
-    options.AddDocumentTransformer((document, _, _) =>
-    {
-        document.Info = new()
-        {
-            Title = "Hospital Management System",
-            Version = "v1",
-            Description = "API for HMS project"
-        };
-        return Task.CompletedTask;
-    });
+// ---------------------------
+// OpenAPI (default .NET 10) - JSON only
+builder.Services.AddEndpointsApiExplorer(); // generates /openapi/v1.json
+// ⚠ Do NOT call AddSwaggerGen() or MapSwaggerUI()
 
-});
-builder.Services.AddOpenApi("v2", options =>
-{
-    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
-    options.AddDocumentTransformer((document, _, _) =>
-    {
-        document.Info = new()
-        {
-            Title = "Hospital Management System",
-            Version = "v2",
-            Description = "API for HMS project"
-        };
-        return Task.CompletedTask;
-    });
-
-});
-
-//api versioning
+// ---------------------------
+// API Versioning
+// ---------------------------
 builder.Services.AddApiVersioning(options =>
 {
     options.AssumeDefaultVersionWhenUnspecified = true;
     options.DefaultApiVersion = new ApiVersion(1, 0);
     options.ReportApiVersions = true;
 });
+
 builder.Services.AddApiVersioning()
     .AddApiExplorer(options =>
     {
         options.GroupNameFormat = "'v'VVV";
         options.SubstituteApiVersionInUrl = true;
     });
-// ===== JWT Authentication =====
 
+// ---------------------------
+// JWT Authentication
+// ---------------------------
 var key = builder.Configuration.GetValue<string>("TokenSetting:SecretKey") ?? "";
-Console.WriteLine("token from p" + key);
+
 var tokenValidationParams = new TokenValidationParameters
 {
     ValidateIssuerSigningKey = true,
@@ -93,111 +77,73 @@ var tokenValidationParams = new TokenValidationParameters
     ClockSkew = TimeSpan.Zero
 };
 
-
 builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = tokenValidationParams;
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+
+    options.Events = new JwtBearerEvents
     {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = tokenValidationParams;
-        options.RequireHttpsMetadata = false;
-        options.SaveToken = true;
-       
-        options.Events = new JwtBearerEvents
+        OnMessageReceived = context =>
         {
-            OnMessageReceived = context =>
-            {
-                // 1️⃣ Try Authorization Header first
-                var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
-                var cookieToken = context.Request.Cookies["access_token"];
+            var token = context.Request.Headers.Authorization.FirstOrDefault()?.Replace("Bearer ", "")
+                        ?? context.Request.Cookies["access_token"];
+            context.Token = token;
+            return Task.CompletedTask;
+        }
+    };
+});
 
-                Console.WriteLine($"AUTH HEADER: {authHeader}");
-                Console.WriteLine($"COOKIE TOKEN: {cookieToken}");
-                
-                var token = context.Request.Headers.Authorization.FirstOrDefault()
-                                ?.Replace("Bearer ", "", StringComparison.OrdinalIgnoreCase)
-                            ?? context.Request.Cookies["access_token"];
-                context.Token = token;
-                return Task.CompletedTask;
-            },
-            
-        };
-    });
-
-// ===== CORS =====
+// ---------------------------
+// CORS
+// ---------------------------
 const string allowedOrigin = "http://localhost:51452";
 
 builder.Services.AddCors(options =>
 {
-
     options.AddPolicy("AllowCors", policy =>
     {
-        policy.WithOrigins(
-                allowedOrigin
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+        policy.WithOrigins(allowedOrigin)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/openapi/v1.json", "HospitalManagementSystem v1");
-        options.SwaggerEndpoint("/openapi/v2.json", "HospitalManagementSystem v2");
-    });
-}
-
-// Redirect root URL to Swagger UI
-app.MapGet("/", context =>
-{
-    context.Response.Redirect("/swagger");
-    return Task.CompletedTask;
-});
-
+// ---------------------------
+// Middleware pipeline
+// ---------------------------
 app.UseHttpsRedirection();
+app.UseCors("AllowCors");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapHealthChecks("/health");
 app.MapControllers();
 
+// ---------------------------
+// Map OpenAPI JSON only
+app.MapOpenApi(); // generates /openapi/v1.json automatically
+// ❌ Do NOT use Swagger UI
+
+// ---------------------------
+// DB Initialization
+// ---------------------------
 var cString = builder.Configuration.GetConnectionString("LocalConnectionString") ?? "";
 var isOk = await DbHelperService.ChecksDbConnection(app.Services, cString);
 if (!isOk)
-{
     return;
-}
-await DbHelperService.SeedDatabaseAsync(app.Services);
-app.Run();
 
-internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvider authenticationSchemeProvider) : IOpenApiDocumentTransformer
-{
-    public async Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
-    {
-        var authenticationSchemes = await authenticationSchemeProvider.GetAllSchemesAsync();
-        if (authenticationSchemes.Any(authScheme => authScheme.Name == "Bearer"))
-        {
-            var securitySchemes = new Dictionary<string, IOpenApiSecurityScheme>
-            {
-                ["Bearer"] = new OpenApiSecurityScheme
-                {
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "bearer", // "bearer" refers to the header name here
-                    In = ParameterLocation.Header,
-                    BearerFormat = "Json Web Token",
-                    Description = "Enter 'Bearer' [space] and then your token.'"
-                }
-            };
-            document.Components ??= new OpenApiComponents();
-            document.Components.SecuritySchemes = securitySchemes;
-        }
-    }
-}
+await DbHelperService.SeedDatabaseAsync(app.Services);
+
+// ---------------------------
+// Run
+// ---------------------------
+app.Run();
