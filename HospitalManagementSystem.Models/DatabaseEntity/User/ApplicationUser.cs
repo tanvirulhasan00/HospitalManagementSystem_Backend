@@ -7,7 +7,7 @@ namespace HospitalManagementSystem.Models.DatabaseEntity.User;
 public class ApplicationUser : IdentityUser
 {
     [MaxLength(100)]
-    public string StuffCode { get; set; } = string.Empty;
+    public string StuffCode { get; init; } = string.Empty;
     [MaxLength(20)]
     public string Password { get; set; } = string.Empty;
     [MaxLength(20)]
@@ -23,7 +23,7 @@ public class ApplicationUser : IdentityUser
     [MaxLength(20)]
     public string? PassportNumber { get; set; }  = string.Empty;
     public DateOnly DateOfBirth { get; set; }
-    public DateTime CreatedAt { get; set; } 
+    public DateTime CreatedAt { get; init; } 
     public DateTime UpdatedAt { get; set; }
     public string? ImageUrl { get; set; }  = string.Empty;
     
