@@ -180,8 +180,8 @@ public class AuthService : Service<ApplicationUser>, IAuthService
                 _response.Message = "User not found.";
                 return _response;
             }
+            var result = await _userManager.ChangePasswordAsync(user, user.Password, request.Password);
             user.Password = request.Password;
-            var result = await _userManager.ChangePasswordAsync(user, request.Password, request.Password);
             if (result.Succeeded)
             {
                 await _db.SaveChangesAsync();
