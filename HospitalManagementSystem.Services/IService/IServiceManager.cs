@@ -6,6 +6,7 @@ public interface IServiceManager
 
     // service registration
     public IAuthService AuthService { get; }
+    public IDepartmentService DepartmentService { get; }
     public ICodeGeneratorService GeneratorCodeService { get; }
     public IFileService File { get; }
 }

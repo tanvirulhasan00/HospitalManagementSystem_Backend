@@ -13,18 +13,13 @@ namespace HospitalManagementSystem.Api.Controllers
     [Route("api/v{version:apiVersion}/auth")]
     [ApiController]
     [ApiVersion("1.0")]
-    public class AuthController : ControllerBase
+    public class AuthController(IServiceManager serviceManager) : ControllerBase
     {
-        private readonly IServiceManager _serviceManager;
-        public AuthController(IServiceManager serviceManager)
-        {
-            _serviceManager = serviceManager;
-        }
-
+        
         [HttpPost("login")]
         public async Task<ApiResponse> Login(LoginRequest request)
         {
-            var response = await _serviceManager.AuthService.Login(request);
+            var response = await serviceManager.AuthService.Login(request);
             return response;
         }
         
@@ -37,11 +32,11 @@ namespace HospitalManagementSystem.Api.Controllers
             var errorCatch = new ApiResponse();
             try
             {
-                var stuffCode = await _serviceManager.GeneratorCodeService.GenerateCodeAsync(request.Role);
+                var stuffCode = await serviceManager.GeneratorCodeService.GenerateCodeAsync(request.Role);
                 var imageUrl = "";
                 if (request.ImageUrl != null)
                 {
-                    imageUrl = await _serviceManager.File.FileUpload(request.ImageUrl,"images/user");
+                    imageUrl = await serviceManager.File.FileUpload(request.ImageUrl,"images/user");
                 }
 
                 var username = Regex.Replace(request.FullName.ToLower(), @"\s+", "");
@@ -65,7 +60,7 @@ namespace HospitalManagementSystem.Api.Controllers
                     ImageUrl = imageUrl,
                     DepartmentId =  request.DepartmentId
                 };
-                var response = await _serviceManager.AuthService.Register(newUser,request.Role);
+                var response = await serviceManager.AuthService.Register(newUser,request.Role);
                 
                 return response;
             }
@@ -82,7 +77,7 @@ namespace HospitalManagementSystem.Api.Controllers
         [Authorize(Roles = "admin")]
         public async Task<ApiResponse> UpdatePassword(UpdatePasswordDto request)
         {
-            var response = await _serviceManager.AuthService.UpdatePassword(request);
+            var response = await serviceManager.AuthService.UpdatePassword(request);
             return response;
         }
         

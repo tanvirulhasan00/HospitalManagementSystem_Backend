@@ -15,6 +15,7 @@ public class ServiceManager : IServiceManager
   private readonly IHttpContextAccessor _httpContextAccessor;
 
   public IAuthService AuthService { get; private set; }
+  public IDepartmentService DepartmentService { get; private set; }
   public ICodeGeneratorService GeneratorCodeService { get; private set; }
   public IFileService File { get; private set; }
 
@@ -27,7 +28,8 @@ public class ServiceManager : IServiceManager
     var secretKey = configuration["TokenSetting:SecretKey"] ?? "";
     //Console.WriteLine(secretKey);
     AuthService = new AuthService(_db, userManager, secretKey,_env,_httpContextAccessor);
-    GeneratorCodeService = new CodeGeneratorService(userManager);
+    DepartmentService = new DepartmentService(_db);
+    GeneratorCodeService = new CodeGeneratorService(userManager,_db);
     File = new FileService(_env, _httpContextAccessor);
   }
 
