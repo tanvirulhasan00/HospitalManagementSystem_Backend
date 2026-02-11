@@ -1,6 +1,7 @@
 using System.Net;
 using Asp.Versioning;
 using HospitalManagementSystem.Models.DatabaseEntity.Department;
+using HospitalManagementSystem.Models.DatabaseEntity.Department.Dto;
 using HospitalManagementSystem.Models.GenericModels;
 using HospitalManagementSystem.Services.IService;
 using Microsoft.AspNetCore.Authorization;
@@ -94,6 +95,59 @@ namespace HospitalManagementSystem.Api.Controllers
             response.Result = deptData;
             return response;
             
+        }
+
+        [HttpPost("create")]
+         [Authorize(Roles = "admin,department")]
+        public async Task<ApiResponse> CreateDepartment(CreateDepartmentDto request, CancellationToken cancellationToken)
+        {
+            var response = new ApiResponse();
+            if (request == null)
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.BadRequest;
+                response.Message = "Invalid request";
+                return response;
+            }
+
+            var existingDept = await serviceManager.DepartmentService.GetAsync(new GenericServiceRequest<Department>
+            {
+                Expression = x=>x.Name.ToLower() == request.Name.ToLower(),
+                NoTracking = true,
+                CancellationToken = cancellationToken
+            });
+            if (existingDept is not null)
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.BadRequest;
+                response.Message = "Department already exists with this name.";
+                return response;
+            }
+            var deptCode = serviceManager.GeneratorCodeService.GdCodeAsync(request.Name).Result;
+            var reqToCreate = new Department()
+            {
+                DepartmentCode =  deptCode,
+                Name =  request.Name,
+                CreateAt = DateTime.UtcNow,
+                Status = true
+            };
+            await serviceManager.DepartmentService.AddAsync(reqToCreate);
+            var res = await serviceManager.Save();
+            if (res > 0)
+            {
+                response.Success = true;
+                response.StatusCode = HttpStatusCode.Created;
+                response.Message = "Created Successful.";
+                return response;
+            }
+            else
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.InternalServerError;
+                response.Message = "Creation Failed.";
+                return response;
+                
+            }
         }
     }
 }
