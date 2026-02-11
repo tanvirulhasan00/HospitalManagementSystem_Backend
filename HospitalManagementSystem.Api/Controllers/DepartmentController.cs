@@ -11,12 +11,13 @@ namespace HospitalManagementSystem.Api.Controllers
     [Route("api/v{version:apiVersion}/departments")]
     [ApiController]
     [ApiVersion("1.0")]
-    public class DepartmentController(IServiceManager serviceManager, ApiResponse response) : ControllerBase
+    public class DepartmentController(IServiceManager serviceManager) : ControllerBase
     {
         [HttpGet("getall")]
         [Authorize(Roles =  "admin,department")]
         public async Task<ApiResponse> GetAllDepartment(CancellationToken cancellationToken)
         {
+            var response = new ApiResponse();
             var genericReq = new GenericServiceRequest<Department>
             {
                 NoTracking = false,
@@ -43,6 +44,7 @@ namespace HospitalManagementSystem.Api.Controllers
         [Authorize(Roles =  "admin,department")]
         public async Task<ApiResponse> GetDepartmentById(Guid id,CancellationToken cancellationToken)
         {
+            var response = new ApiResponse();
             var genericReq = new GenericServiceRequest<Department>
             {
                 Expression = x=> x.Id == id,
@@ -70,6 +72,7 @@ namespace HospitalManagementSystem.Api.Controllers
         [Authorize(Roles =  "admin,department")]
         public async Task<ApiResponse> GetDepartmentByCode(string deptCode,CancellationToken cancellationToken)
         {
+            var response = new ApiResponse();
             var genericReq = new GenericServiceRequest<Department>
             {
                 Expression = x=> x.DepartmentCode == deptCode,
