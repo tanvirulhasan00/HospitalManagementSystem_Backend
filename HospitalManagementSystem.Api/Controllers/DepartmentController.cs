@@ -98,7 +98,7 @@ namespace HospitalManagementSystem.Api.Controllers
         }
 
         [HttpPost("create")]
-         [Authorize(Roles = "admin,department")]
+        [Authorize(Roles = "admin,department")]
         public async Task<ApiResponse> CreateDepartment(CreateDepartmentDto request, CancellationToken cancellationToken)
         {
             var response = new ApiResponse();
@@ -145,6 +145,54 @@ namespace HospitalManagementSystem.Api.Controllers
                 response.Success = false;
                 response.StatusCode = HttpStatusCode.InternalServerError;
                 response.Message = "Creation Failed.";
+                return response;
+                
+            }
+        }
+        
+        [HttpPost("update")]
+        [Authorize(Roles = "admin,department")]
+        public async Task<ApiResponse> UpdateDepartment(UpdateDepartmentDto request, CancellationToken cancellationToken)
+        {
+            var response = new ApiResponse();
+            if (String.IsNullOrEmpty(request.Id.ToString()))
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.BadRequest;
+                response.Message = "Invalid request Id";
+                return response;
+            }
+
+            var existingDept = await serviceManager.DepartmentService.GetAsync(new GenericServiceRequest<Department>
+            {
+                Expression = x=>x.Id == request.Id,
+                NoTracking = true,
+                CancellationToken = cancellationToken
+            });
+            if (existingDept is null)
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.NotFound;
+                response.Message = "Department Not Found";
+                return response;
+            }
+            existingDept.Name = request.Name;
+            existingDept.UpdateAt = DateTime.UtcNow;
+            
+            serviceManager.DepartmentService.Update(existingDept);
+            var res = await serviceManager.Save();
+            if (res > 0)
+            {
+                response.Success = true;
+                response.StatusCode = HttpStatusCode.Created;
+                response.Message = "Updated Successful.";
+                return response;
+            }
+            else
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.InternalServerError;
+                response.Message = "Update Failed.";
                 return response;
                 
             }
