@@ -19,25 +19,43 @@ namespace HospitalManagementSystem.Api.Controllers
         public async Task<ApiResponse> GetAllDepartment(CancellationToken cancellationToken)
         {
             var response = new ApiResponse();
-            var genericReq = new GenericServiceRequest<Department>
+            try
             {
-                NoTracking = false,
-                CancellationToken = cancellationToken
+                var genericReq = new GenericServiceRequest<Department>
+                {
+                    NoTracking = false,
+                    CancellationToken = cancellationToken
 
-            };
-            var deptData = await serviceManager.DepartmentService.GetAllAsync(genericReq);
-            if (!deptData.Any())
-            {
-                response.Success = false;
-                response.StatusCode = HttpStatusCode.NotFound;
-                response.Message = "No Departments found";
+                };
+                var deptData = await serviceManager.DepartmentService.GetAllAsync(genericReq);
+                if (!deptData.Any())
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpStatusCode.NotFound;
+                    response.Message = "No Departments found";
+                    return response;
+                }
+                response.Success = true;
+                response.StatusCode = HttpStatusCode.OK;
+                response.Message = "Successful";
+                response.Result = deptData;
                 return response;
             }
-            response.Success = true;
-            response.StatusCode = HttpStatusCode.OK;
-            response.Message = "Successful";
-            response.Result = deptData;
-            return response;
+            catch (TaskCanceledException ex)
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.RequestTimeout;
+                response.Message = ex.Message;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.InternalServerError;
+                response.Message = ex.Message;
+                return response;
+            }
+            
             
         }
         
@@ -46,26 +64,44 @@ namespace HospitalManagementSystem.Api.Controllers
         public async Task<ApiResponse> GetDepartmentById(Guid id,CancellationToken cancellationToken)
         {
             var response = new ApiResponse();
-            var genericReq = new GenericServiceRequest<Department>
+            try
             {
-                Expression = x=> x.Id == id,
-                NoTracking = true,
-                CancellationToken = cancellationToken
+                var genericReq = new GenericServiceRequest<Department>
+                {
+                    Expression = x=> x.Id == id,
+                    NoTracking = true,
+                    CancellationToken = cancellationToken
 
-            };
-            var deptData = await serviceManager.DepartmentService.GetAsync(genericReq);
-            if (deptData == null)
-            {
-                response.Success = false;
-                response.StatusCode = HttpStatusCode.NotFound;
-                response.Message = "No Departments found";
+                };
+                var deptData = await serviceManager.DepartmentService.GetAsync(genericReq);
+                if (deptData == null)
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpStatusCode.NotFound;
+                    response.Message = "No Departments found";
+                    return response;
+                }
+                response.Success = true;
+                response.StatusCode = HttpStatusCode.OK;
+                response.Message = "Successful";
+                response.Result = deptData;
                 return response;
             }
-            response.Success = true;
-            response.StatusCode = HttpStatusCode.OK;
-            response.Message = "Successful";
-            response.Result = deptData;
-            return response;
+            catch (TaskCanceledException ex)
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.RequestTimeout;
+                response.Message = ex.Message;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.InternalServerError;
+                response.Message = ex.Message;
+                return response;
+            }
+            
             
         }
         
@@ -74,26 +110,44 @@ namespace HospitalManagementSystem.Api.Controllers
         public async Task<ApiResponse> GetDepartmentByCode(string deptCode,CancellationToken cancellationToken)
         {
             var response = new ApiResponse();
-            var genericReq = new GenericServiceRequest<Department>
+            try
             {
-                Expression = x=> x.DepartmentCode == deptCode,
-                NoTracking = true,
-                CancellationToken = cancellationToken
+                var genericReq = new GenericServiceRequest<Department>
+                {
+                    Expression = x=> x.DepartmentCode == deptCode,
+                    NoTracking = true,
+                    CancellationToken = cancellationToken
 
-            };
-            var deptData = await serviceManager.DepartmentService.GetAsync(genericReq);
-            if (deptData == null)
-            {
-                response.Success = false;
-                response.StatusCode = HttpStatusCode.NotFound;
-                response.Message = "No Departments found";
+                };
+                var deptData = await serviceManager.DepartmentService.GetAsync(genericReq);
+                if (deptData == null)
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpStatusCode.NotFound;
+                    response.Message = "No Departments found";
+                    return response;
+                }
+                response.Success = true;
+                response.StatusCode = HttpStatusCode.OK;
+                response.Message = "Successful";
+                response.Result = deptData;
                 return response;
             }
-            response.Success = true;
-            response.StatusCode = HttpStatusCode.OK;
-            response.Message = "Successful";
-            response.Result = deptData;
-            return response;
+            catch (TaskCanceledException ex)
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.RequestTimeout;
+                response.Message = ex.Message;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.InternalServerError;
+                response.Message = ex.Message;
+                return response;
+            }
+            
             
         }
 
@@ -102,52 +156,70 @@ namespace HospitalManagementSystem.Api.Controllers
         public async Task<ApiResponse> CreateDepartment(CreateDepartmentDto request, CancellationToken cancellationToken)
         {
             var response = new ApiResponse();
-            if (request == null)
+            try
             {
-                response.Success = false;
-                response.StatusCode = HttpStatusCode.BadRequest;
-                response.Message = "Invalid request";
-                return response;
-            }
+                if (request == null)
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    response.Message = "Invalid request";
+                    return response;
+                }
 
-            var existingDept = await serviceManager.DepartmentService.GetAsync(new GenericServiceRequest<Department>
-            {
-                Expression = x=>x.Name.ToLower() == request.Name.ToLower(),
-                NoTracking = true,
-                CancellationToken = cancellationToken
-            });
-            if (existingDept is not null)
+                var existingDept = await serviceManager.DepartmentService.GetAsync(new GenericServiceRequest<Department>
+                {
+                    Expression = x=>x.Name.ToLower() == request.Name.ToLower(),
+                    NoTracking = true,
+                    CancellationToken = cancellationToken
+                });
+                if (existingDept is not null)
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    response.Message = "Department already exists with this name.";
+                    return response;
+                }
+                var deptCode = serviceManager.GeneratorCodeService.GdCodeAsync(request.Name).Result;
+                var reqToCreate = new Department()
+                {
+                    DepartmentCode =  deptCode,
+                    Name =  request.Name,
+                    CreateAt = DateTime.UtcNow,
+                    Status = true
+                };
+                await serviceManager.DepartmentService.AddAsync(reqToCreate);
+                var res = await serviceManager.Save();
+                if (res > 0)
+                {
+                    response.Success = true;
+                    response.StatusCode = HttpStatusCode.Created;
+                    response.Message = "Created Successful.";
+                    return response;
+                }
+                else
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpStatusCode.InternalServerError;
+                    response.Message = "Creation Failed.";
+                    return response;
+                
+                }
+            }
+            catch (TaskCanceledException ex)
             {
                 response.Success = false;
-                response.StatusCode = HttpStatusCode.BadRequest;
-                response.Message = "Department already exists with this name.";
+                response.StatusCode = HttpStatusCode.RequestTimeout;
+                response.Message = ex.Message;
                 return response;
             }
-            var deptCode = serviceManager.GeneratorCodeService.GdCodeAsync(request.Name).Result;
-            var reqToCreate = new Department()
-            {
-                DepartmentCode =  deptCode,
-                Name =  request.Name,
-                CreateAt = DateTime.UtcNow,
-                Status = true
-            };
-            await serviceManager.DepartmentService.AddAsync(reqToCreate);
-            var res = await serviceManager.Save();
-            if (res > 0)
-            {
-                response.Success = true;
-                response.StatusCode = HttpStatusCode.Created;
-                response.Message = "Created Successful.";
-                return response;
-            }
-            else
+            catch (Exception ex)
             {
                 response.Success = false;
                 response.StatusCode = HttpStatusCode.InternalServerError;
-                response.Message = "Creation Failed.";
+                response.Message = ex.Message;
                 return response;
-                
             }
+            
         }
         
         [HttpPost("update")]
@@ -155,47 +227,112 @@ namespace HospitalManagementSystem.Api.Controllers
         public async Task<ApiResponse> UpdateDepartment(UpdateDepartmentDto request, CancellationToken cancellationToken)
         {
             var response = new ApiResponse();
-            if (String.IsNullOrEmpty(request.Id.ToString()))
+            try
             {
-                response.Success = false;
-                response.StatusCode = HttpStatusCode.BadRequest;
-                response.Message = "Invalid request Id";
-                return response;
-            }
+                if (String.IsNullOrEmpty(request.Id.ToString()))
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    response.Message = "Invalid request Id";
+                    return response;
+                }
 
-            var existingDept = await serviceManager.DepartmentService.GetAsync(new GenericServiceRequest<Department>
-            {
-                Expression = x=>x.Id == request.Id,
-                NoTracking = true,
-                CancellationToken = cancellationToken
-            });
-            if (existingDept is null)
+                var existingDept = await serviceManager.DepartmentService.GetAsync(new GenericServiceRequest<Department>
+                {
+                    Expression = x=>x.Id == request.Id,
+                    NoTracking = true,
+                    CancellationToken = cancellationToken
+                });
+                if (existingDept is null)
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpStatusCode.NotFound;
+                    response.Message = "Department Not Found";
+                    return response;
+                }
+                existingDept.Name = request.Name;
+                existingDept.UpdateAt = DateTime.UtcNow;
+            
+                serviceManager.DepartmentService.Update(existingDept);
+                var res = await serviceManager.Save();
+                if (res > 0)
+                {
+                    response.Success = true;
+                    response.StatusCode = HttpStatusCode.Created;
+                    response.Message = "Updated Successful.";
+                    return response;
+                }
+                else
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpStatusCode.InternalServerError;
+                    response.Message = "Update Failed.";
+                    return response;
+                
+                }
+            }
+            catch (TaskCanceledException ex)
             {
                 response.Success = false;
-                response.StatusCode = HttpStatusCode.NotFound;
-                response.Message = "Department Not Found";
+                response.StatusCode = HttpStatusCode.RequestTimeout;
+                response.Message = ex.Message;
                 return response;
             }
-            existingDept.Name = request.Name;
-            existingDept.UpdateAt = DateTime.UtcNow;
-            
-            serviceManager.DepartmentService.Update(existingDept);
-            var res = await serviceManager.Save();
-            if (res > 0)
-            {
-                response.Success = true;
-                response.StatusCode = HttpStatusCode.Created;
-                response.Message = "Updated Successful.";
-                return response;
-            }
-            else
+            catch (Exception ex)
             {
                 response.Success = false;
                 response.StatusCode = HttpStatusCode.InternalServerError;
-                response.Message = "Update Failed.";
+                response.Message = ex.Message;
                 return response;
-                
+            }
+            
+        }
+        
+        [HttpGet("delete")]
+        [Authorize(Roles =  "admin,department")]
+        public async Task<ApiResponse> DeleteDepartment(Guid id,CancellationToken cancellationToken)
+        {
+            var response = new ApiResponse();
+            try
+            {
+                var genericReq = new GenericServiceRequest<Department>
+                {
+                    Expression = x=> x.Id == id,
+                    NoTracking = true,
+                    CancellationToken = cancellationToken
+
+                };
+                var deptData = await serviceManager.DepartmentService.GetAsync(genericReq);
+                if (deptData == null)
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpStatusCode.NotFound;
+                    response.Message = "No Departments found";
+                    return response;
+                }
+                serviceManager.DepartmentService.Remove(deptData);
+                await serviceManager.Save();
+                response.Success = true;
+                response.StatusCode = HttpStatusCode.OK;
+                response.Message = "Delete Successful";
+                response.Result = deptData;
+                return response;
+            }
+            catch (TaskCanceledException ex)
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.RequestTimeout;
+                response.Message = ex.Message;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.InternalServerError;
+                response.Message = ex.Message;
+                return response;
             }
         }
+
     }
 }
