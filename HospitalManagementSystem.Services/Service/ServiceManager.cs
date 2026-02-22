@@ -16,6 +16,7 @@ public class ServiceManager : IServiceManager
 
   public IAuthService AuthService { get; private set; }
   public IDepartmentService DepartmentService { get; private set; }
+  public IPatientService PatientService { get; private set; }
   public ICodeGeneratorService GeneratorCodeService { get; private set; }
   public IFileService File { get; private set; }
 
@@ -29,6 +30,7 @@ public class ServiceManager : IServiceManager
     //Console.WriteLine(secretKey);
     AuthService = new AuthService(_db, userManager, secretKey,_env,_httpContextAccessor);
     DepartmentService = new DepartmentService(_db);
+    PatientService = new PatientService(_db);
     GeneratorCodeService = new CodeGeneratorService(userManager,_db);
     File = new FileService(_env, _httpContextAccessor);
   }

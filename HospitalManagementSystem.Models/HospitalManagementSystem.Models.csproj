@@ -12,10 +12,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="DatabaseEntity\Patient\Dto\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\HospitalManagementSystem.Utilities\HospitalManagementSystem.Utilities.csproj" />
     </ItemGroup>
 

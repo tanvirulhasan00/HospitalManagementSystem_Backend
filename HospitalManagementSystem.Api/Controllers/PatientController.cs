@@ -2,6 +2,8 @@ using System.Net;
 using Asp.Versioning;
 using HospitalManagementSystem.Models.DatabaseEntity.Department;
 using HospitalManagementSystem.Models.DatabaseEntity.Department.Dto;
+using HospitalManagementSystem.Models.DatabaseEntity.Patient;
+using HospitalManagementSystem.Models.DatabaseEntity.Patient.Dto;
 using HospitalManagementSystem.Models.GenericModels;
 using HospitalManagementSystem.Services.IService;
 using Microsoft.AspNetCore.Authorization;
@@ -9,36 +11,36 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HospitalManagementSystem.Api.Controllers
 {
-    [Route("api/v{version:apiVersion}/departments")]
+    [Route("api/v{version:apiVersion}/patients")]
     [ApiController]
     [ApiVersion("1.0")]
-    public class DepartmentController(IServiceManager serviceManager) : ControllerBase
+    public class PatientController(IServiceManager serviceManager) : ControllerBase
     {
         [HttpGet("getall")]
-        [Authorize(Roles =  "admin,department")]
-        public async Task<ApiResponse> GetAllDepartment(CancellationToken cancellationToken)
+        [Authorize(Roles =  "admin,patient")]
+        public async Task<ApiResponse> GetAllPatient(CancellationToken cancellationToken)
         {
             var response = new ApiResponse();
             try
             {
-                var genericReq = new GenericServiceRequest<Department>
+                var genericReq = new GenericServiceRequest<Patient>
                 {
                     NoTracking = false,
                     CancellationToken = cancellationToken
 
                 };
-                var deptData = await serviceManager.DepartmentService.GetAllAsync(genericReq);
-                if (!deptData.Any())
+                var data = await serviceManager.PatientService.GetAllAsync(genericReq);
+                if (!data.Any())
                 {
                     response.Success = false;
                     response.StatusCode = HttpStatusCode.NotFound;
-                    response.Message = "No Departments found";
+                    response.Message = "No Patient found";
                     return response;
                 }
                 response.Success = true;
                 response.StatusCode = HttpStatusCode.OK;
                 response.Message = "Successful";
-                response.Result = deptData;
+                response.Result = data;
                 return response;
             }
             catch (TaskCanceledException ex)
@@ -60,21 +62,21 @@ namespace HospitalManagementSystem.Api.Controllers
         }
         
         [HttpGet("get-by-id")]
-        [Authorize(Roles =  "admin,department")]
-        public async Task<ApiResponse> GetDepartmentById(Guid id,CancellationToken cancellationToken)
+        [Authorize(Roles =  "admin,patient")]
+        public async Task<ApiResponse> GetPatientById(Guid id,CancellationToken cancellationToken)
         {
             var response = new ApiResponse();
             try
             {
-                var genericReq = new GenericServiceRequest<Department>
+                var genericReq = new GenericServiceRequest<Patient>
                 {
                     Expression = x=> x.Id == id,
                     NoTracking = true,
                     CancellationToken = cancellationToken
 
                 };
-                var deptData = await serviceManager.DepartmentService.GetAsync(genericReq);
-                if (deptData == null)
+                var data = await serviceManager.PatientService.GetAsync(genericReq);
+                if (data == null)
                 {
                     response.Success = false;
                     response.StatusCode = HttpStatusCode.NotFound;
@@ -84,7 +86,7 @@ namespace HospitalManagementSystem.Api.Controllers
                 response.Success = true;
                 response.StatusCode = HttpStatusCode.OK;
                 response.Message = "Successful";
-                response.Result = deptData;
+                response.Result = data;
                 return response;
             }
             catch (TaskCanceledException ex)
@@ -106,21 +108,21 @@ namespace HospitalManagementSystem.Api.Controllers
         }
         
         [HttpGet("get-by-code")]
-        [Authorize(Roles =  "admin,department")]
-        public async Task<ApiResponse> GetDepartmentByCode(string deptCode,CancellationToken cancellationToken)
+        [Authorize(Roles =  "admin,patient")]
+        public async Task<ApiResponse> GetPatientByCode(string code,CancellationToken cancellationToken)
         {
             var response = new ApiResponse();
             try
             {
-                var genericReq = new GenericServiceRequest<Department>
+                var genericReq = new GenericServiceRequest<Patient>
                 {
-                    Expression = x=> x.DepartmentCode == deptCode,
+                    Expression = x=> x.PatientCode == code,
                     NoTracking = true,
                     CancellationToken = cancellationToken
 
                 };
-                var deptData = await serviceManager.DepartmentService.GetAsync(genericReq);
-                if (deptData == null)
+                var data = await serviceManager.PatientService.GetAsync(genericReq);
+                if (data == null)
                 {
                     response.Success = false;
                     response.StatusCode = HttpStatusCode.NotFound;
@@ -130,7 +132,7 @@ namespace HospitalManagementSystem.Api.Controllers
                 response.Success = true;
                 response.StatusCode = HttpStatusCode.OK;
                 response.Message = "Successful";
-                response.Result = deptData;
+                response.Result = data;
                 return response;
             }
             catch (TaskCanceledException ex)
@@ -152,8 +154,8 @@ namespace HospitalManagementSystem.Api.Controllers
         }
 
         [HttpPost("create")]
-        [Authorize(Roles = "admin,department")]
-        public async Task<ApiResponse> CreateDepartment(CreateDepartmentDto request, CancellationToken cancellationToken)
+        [Authorize(Roles = "admin,patient")]
+        public async Task<ApiResponse> CreatePatient(CreatePatientDto request, CancellationToken cancellationToken)
         {
             var response = new ApiResponse();
             try
@@ -166,42 +168,47 @@ namespace HospitalManagementSystem.Api.Controllers
                     return response;
                 }
 
-                var existingDept = await serviceManager.DepartmentService.GetAsync(new GenericServiceRequest<Department>
+                var existingData = await serviceManager.PatientService.GetAsync(new GenericServiceRequest<Patient>
                 {
-                    Expression = x=>x.Name.ToLower() == request.Name.ToLower(),
+                    Expression = x=>x.PhoneNumber.ToLower() == request.PhoneNumber.ToLower(),
                     NoTracking = true,
                     CancellationToken = cancellationToken
                 });
-                if (existingDept is not null)
+                if (existingData is not null)
                 {
                     response.Success = false;
                     response.StatusCode = HttpStatusCode.BadRequest;
-                    response.Message = "Department already exists with this name.";
+                    response.Message = "Patient already exists with this phone-number.";
                     return response;
                 }
-                var deptCode = serviceManager.GeneratorCodeService.GdCodeAsync(request.Name).Result;
-                var reqToCreate = new Department()
+                var patientCode = serviceManager.GeneratorCodeService.GpCodeAsync().Result;
+                var reqToCreate = new Patient()
                 {
-                    DepartmentCode =  deptCode,
-                    Name =  request.Name,
-                    CreateAt = DateTime.UtcNow,
+                    PatientCode = patientCode,
+                    FullName = request.FullName,
+                    Gender =  request.Gender,
+                    BloodGroup =  request.BloodGroup,
+                    DateOfBirth =  request.DateOfBirth,
+                    CreatedAt = DateTime.UtcNow,
                     Status = true
                 };
-                await serviceManager.DepartmentService.AddAsync(reqToCreate);
+                await serviceManager.PatientService.AddAsync(reqToCreate);
                 var res = await serviceManager.Save();
                 if (res > 0)
                 {
                     response.Success = true;
                     response.StatusCode = HttpStatusCode.Created;
                     response.Message = "Created Successful.";
+                    return response;
                 }
                 else
                 {
                     response.Success = false;
                     response.StatusCode = HttpStatusCode.InternalServerError;
                     response.Message = "Creation Failed.";
+                    return response;
+                
                 }
-                return response;
             }
             catch (TaskCanceledException ex)
             {
@@ -221,8 +228,8 @@ namespace HospitalManagementSystem.Api.Controllers
         }
         
         [HttpPost("update")]
-        [Authorize(Roles = "admin,department")]
-        public async Task<ApiResponse> UpdateDepartment(UpdateDepartmentDto request, CancellationToken cancellationToken)
+        [Authorize(Roles = "admin,patient")]
+        public async Task<ApiResponse> UpdatePatient(UpdatePatientDto request, CancellationToken cancellationToken)
         {
             var response = new ApiResponse();
             try
@@ -235,39 +242,41 @@ namespace HospitalManagementSystem.Api.Controllers
                     return response;
                 }
 
-                var existingDept = await serviceManager.DepartmentService.GetAsync(new GenericServiceRequest<Department>
+                var existingData = await serviceManager.PatientService.GetAsync(new GenericServiceRequest<Patient>
                 {
                     Expression = x=>x.Id == request.Id,
                     NoTracking = true,
                     CancellationToken = cancellationToken
                 });
-                if (existingDept is null)
+                if (existingData is null)
                 {
                     response.Success = false;
                     response.StatusCode = HttpStatusCode.NotFound;
-                    response.Message = "Department Not Found";
+                    response.Message = "Patient Not Found";
                     return response;
                 }
-                existingDept.Name = request.Name;
-                existingDept.UpdateAt = DateTime.UtcNow;
+                existingData.FullName = request.FullName;
+                existingData.PhoneNumber = request.PhoneNumber;
+                existingData.Gender = request.Gender;
+                existingData.BloodGroup = request.BloodGroup;
+                existingData.DateOfBirth = request.DateOfBirth;
+                existingData.UpdatedAt = DateTime.UtcNow;
             
-                serviceManager.DepartmentService.Update(existingDept);
+                serviceManager.PatientService.Update(existingData);
                 var res = await serviceManager.Save();
                 if (res > 0)
                 {
                     response.Success = true;
                     response.StatusCode = HttpStatusCode.OK;
                     response.Message = "Updated Successful.";
-                    return response;
                 }
                 else
                 {
                     response.Success = false;
                     response.StatusCode = HttpStatusCode.InternalServerError;
                     response.Message = "Update Failed.";
-                    return response;
-                
                 }
+                return response;
             }
             catch (TaskCanceledException ex)
             {

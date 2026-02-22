@@ -39,4 +39,15 @@ public class CodeGeneratorService : ICodeGeneratorService
         return $"{prefix}{number}";
         
     }
+    public async Task<string> GpCodeAsync()
+    {
+        const string prefix = "Pat";
+        
+        //count existing code for dept name
+        var data = await _db.Patients.ToListAsync();
+        var count = data.Count;
+        var number = (count).ToString("D2");
+        return $"{prefix}{number}";
+        
+    }
 }
