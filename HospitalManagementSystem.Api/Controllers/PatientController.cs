@@ -1,7 +1,6 @@
 using System.Net;
 using Asp.Versioning;
 using HospitalManagementSystem.Models.DatabaseEntity.Department;
-using HospitalManagementSystem.Models.DatabaseEntity.Department.Dto;
 using HospitalManagementSystem.Models.DatabaseEntity.Patient;
 using HospitalManagementSystem.Models.DatabaseEntity.Patient.Dto;
 using HospitalManagementSystem.Models.GenericModels;
@@ -160,17 +159,9 @@ namespace HospitalManagementSystem.Api.Controllers
             var response = new ApiResponse();
             try
             {
-                if (request == null)
-                {
-                    response.Success = false;
-                    response.StatusCode = HttpStatusCode.BadRequest;
-                    response.Message = "Invalid request";
-                    return response;
-                }
-
                 var existingData = await serviceManager.PatientService.GetAsync(new GenericServiceRequest<Patient>
                 {
-                    Expression = x=>x.PhoneNumber.ToLower() == request.PhoneNumber.ToLower(),
+                    Expression = x=>x.PhoneNumber == request.PhoneNumber,
                     NoTracking = true,
                     CancellationToken = cancellationToken
                 });
@@ -199,16 +190,16 @@ namespace HospitalManagementSystem.Api.Controllers
                     response.Success = true;
                     response.StatusCode = HttpStatusCode.Created;
                     response.Message = "Created Successful.";
-                    return response;
+                    
                 }
                 else
                 {
                     response.Success = false;
                     response.StatusCode = HttpStatusCode.InternalServerError;
                     response.Message = "Creation Failed.";
-                    return response;
                 
                 }
+                return response;
             }
             catch (TaskCanceledException ex)
             {

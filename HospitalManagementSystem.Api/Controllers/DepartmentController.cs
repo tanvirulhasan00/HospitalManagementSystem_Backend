@@ -158,14 +158,6 @@ namespace HospitalManagementSystem.Api.Controllers
             var response = new ApiResponse();
             try
             {
-                if (request == null)
-                {
-                    response.Success = false;
-                    response.StatusCode = HttpStatusCode.BadRequest;
-                    response.Message = "Invalid request";
-                    return response;
-                }
-
                 var existingDept = await serviceManager.DepartmentService.GetAsync(new GenericServiceRequest<Department>
                 {
                     Expression = x=>x.Name.ToLower() == request.Name.ToLower(),
@@ -258,16 +250,15 @@ namespace HospitalManagementSystem.Api.Controllers
                     response.Success = true;
                     response.StatusCode = HttpStatusCode.OK;
                     response.Message = "Updated Successful.";
-                    return response;
                 }
                 else
                 {
                     response.Success = false;
                     response.StatusCode = HttpStatusCode.InternalServerError;
                     response.Message = "Update Failed.";
-                    return response;
                 
                 }
+                return response;
             }
             catch (TaskCanceledException ex)
             {

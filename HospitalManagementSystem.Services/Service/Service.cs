@@ -26,7 +26,7 @@ public class Service<T>(HMSDbContext db) : IService<T> where T : class
         return await query.ToListAsync(request.CancellationToken);
     }
 
-    public async Task<T> GetAsync(GenericServiceRequest<T> request)
+    public async Task<T?> GetAsync(GenericServiceRequest<T> request)
     {
         var query = request.NoTracking ? _dbSet.AsNoTracking() : _dbSet;
         if (request.Expression != null)
@@ -41,7 +41,7 @@ public class Service<T>(HMSDbContext db) : IService<T> where T : class
                 .Select(p => p.Trim())
                 .Aggregate(query, (current, include) => current.Include(include));
         }
-        return await query.FirstOrDefaultAsync(request.CancellationToken) ?? null!;
+        return await query.FirstOrDefaultAsync(request.CancellationToken);
     }
 
     public async Task AddAsync(T entity)
