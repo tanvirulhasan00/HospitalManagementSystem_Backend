@@ -284,6 +284,13 @@ namespace HospitalManagementSystem.Api.Controllers
             var response = new ApiResponse();
             try
             {
+                if (String.IsNullOrEmpty(id.ToString()))
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    response.Message = "Invalid request Id";
+                    return response;
+                }
                 var genericReq = new GenericServiceRequest<Department>
                 {
                     Expression = x=> x.Id == id,

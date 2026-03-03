@@ -1,6 +1,5 @@
 using System.Net;
 using Asp.Versioning;
-using HospitalManagementSystem.Models.DatabaseEntity.Department;
 using HospitalManagementSystem.Models.DatabaseEntity.Patient;
 using HospitalManagementSystem.Models.DatabaseEntity.Patient.Dto;
 using HospitalManagementSystem.Models.GenericModels;
@@ -288,31 +287,38 @@ namespace HospitalManagementSystem.Api.Controllers
         
         [HttpDelete("delete")]
         [Authorize(Roles =  "admin,department")]
-        public async Task<ApiResponse> DeleteDepartment(Guid id,CancellationToken cancellationToken)
+        public async Task<ApiResponse> DeletePatient(Guid id,CancellationToken cancellationToken)
         {
             var response = new ApiResponse();
             try
             {
-                var genericReq = new GenericServiceRequest<Department>
+                if (String.IsNullOrEmpty(id.ToString()))
+                {
+                    response.Success = false;
+                    response.StatusCode = HttpStatusCode.BadRequest;
+                    response.Message = "Invalid request Id";
+                    return response;
+                }
+                var genericReq = new GenericServiceRequest<Patient>
                 {
                     Expression = x=> x.Id == id,
                     NoTracking = true,
                     CancellationToken = cancellationToken
                 };
-                var deptData = await serviceManager.DepartmentService.GetAsync(genericReq);
-                if (deptData == null)
+                var data = await serviceManager.PatientService.GetAsync(genericReq);
+                if (data == null)
                 {
                     response.Success = false;
                     response.StatusCode = HttpStatusCode.NotFound;
-                    response.Message = "No Departments found";
+                    response.Message = "No patient found";
                     return response;
                 }
-                serviceManager.DepartmentService.Remove(deptData);
+                serviceManager.PatientService.Remove(data);
                 await serviceManager.Save();
                 response.Success = true;
                 response.StatusCode = HttpStatusCode.OK;
                 response.Message = "Delete Successful";
-                response.Result = deptData;
+                response.Result = data;
                 return response;
             }
             catch (TaskCanceledException ex)
