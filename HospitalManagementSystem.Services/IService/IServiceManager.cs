@@ -9,6 +9,7 @@ public interface IServiceManager
     public IDepartmentService DepartmentService { get; }
     public IPatientService PatientService { get; }
     public IDoctorService DoctorService { get; }
+    public IAppointmentService AppointmentService { get; }
     public ICodeGeneratorService GeneratorCodeService { get; }
     public IFileService File { get; }
 }

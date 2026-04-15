@@ -18,6 +18,7 @@ public class ServiceManager : IServiceManager
   public IDepartmentService DepartmentService { get; private set; }
   public IPatientService PatientService { get; private set; }
   public IDoctorService DoctorService { get; private set; }
+  public IAppointmentService AppointmentService { get; private set; }
   public ICodeGeneratorService GeneratorCodeService { get; private set; }
   public IFileService File { get; private set; }
 
@@ -33,6 +34,7 @@ public class ServiceManager : IServiceManager
     DepartmentService = new DepartmentService(_db);
     PatientService = new PatientService(_db);
     DoctorService = new DoctorService(_db);
+    AppointmentService = new AppointmentService(_db);
     GeneratorCodeService = new CodeGeneratorService(userManager,_db);
     File = new FileService(_env, _httpContextAccessor);
   }
