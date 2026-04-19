@@ -15,8 +15,4 @@
       <ProjectReference Include="..\HospitalManagementSystem.Utilities\HospitalManagementSystem.Utilities.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="DatabaseEntity\Appointment\Dto\" />
-    </ItemGroup>
-
 </Project>

@@ -1,6 +1,7 @@
 using System.Net;
 using Asp.Versioning;
 using HospitalManagementSystem.Models.DatabaseEntity.Appointment;
+using HospitalManagementSystem.Models.DatabaseEntity.Appointment.Dto;
 using HospitalManagementSystem.Models.GenericModels;
 using HospitalManagementSystem.Services.IService;
 using Microsoft.AspNetCore.Authorization;
@@ -198,6 +199,50 @@ namespace HospitalManagementSystem.Api.Controllers
             }
             
             
+        }
+
+        [HttpPost("create")]
+        [Authorize(Roles = "admin")]
+        public async Task<ApiResponse> CreateAppointment(CreateAppointmentDto appointment, CancellationToken cancellationToken)
+        {
+            var response = new ApiResponse();
+            try
+            {
+                var createAppoint = new Appointment()
+                {
+                    AppointmentCode = "",
+                    PatientCode = appointment.PatientCode,
+                    DoctorName = appointment.DoctorName,
+                    DepartmentName = appointment.DepartmentName,
+                    AppointDate = appointment.AppointDate,
+                    SerialNo = appointment.SerialNo,
+                    Status = true
+                };
+                await serviceManager.AppointmentService.AddAsync(createAppoint);
+                await serviceManager.Save();
+                
+                response.Success = true;
+                response.StatusCode = HttpStatusCode.Created;
+                response.Message = "Created Successful";
+                
+                return response;
+                
+
+            }
+            catch (TaskCanceledException ex)
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.RequestTimeout;
+                response.Message = ex.Message;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.StatusCode = HttpStatusCode.InternalServerError;
+                response.Message = ex.Message;
+                return response;
+            }
         }
 
     }
