@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="HospitalManagementSystem.Api/HospitalManagementSystem.Api.csproj" />
+  <Project Path="HospitalManagementSystem.Database/HospitalManagementSystem.Database.csproj" Id="8ac84a84-c3f2-49fb-b178-5e787f1dff71" />
+  <Project Path="HospitalManagementSystem.Models/HospitalManagementSystem.Models.csproj" Id="d6e656f3-7e39-4e18-80dd-60a4dfff53fe" />
+  <Project Path="HospitalManagementSystem.Services/HospitalManagementSystem.Services.csproj" Id="a3d98342-3cb9-48da-a35a-07374f7263eb" />
+</Solution>
